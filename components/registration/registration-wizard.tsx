@@ -169,7 +169,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
     const form = document.querySelector("form[data-reg]") as HTMLFormElement | null;
     if (!form) return;
     const fd = new FormData(form);
-    const snap: Record<string, string | string[]> = {};
+    const snap: Record<string, string | string[]> = { ...formSnapshot };
     fd.forEach((v, k) => { if (k !== "nationalIdFront" && k !== "nationalIdBack" && k !== "paymentScreenshot") snap[k] = String(v); });
     const interests = fd.getAll("interests").map(String);
     if (interests.length) snap.interests = interests;
@@ -298,7 +298,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
               )}
 
               <div className="flex justify-end">
-                <button type="button" className="btn-primary" onClick={() => setStep(1)}>
+                <button type="button" className="btn-primary" onClick={() => { captureSnapshot(); setStep(1); }}>
                   Next: Tell Us About You <ArrowRight size={18} />
                 </button>
               </div>
