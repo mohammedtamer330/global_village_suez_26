@@ -170,7 +170,7 @@ export function Hero({ recapItems, settings, registrationOpen, capacity }: HeroP
                   aria-label="Register for Global Village 26"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    Get Your Street Pass
+                    Get Your Global Village '26 Pass
                     <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
                   </span>
                   <span className="absolute inset-0 -translate-x-full bg-white/20 transition-transform duration-500 group-hover:translate-x-full" aria-hidden="true" />
@@ -229,7 +229,7 @@ export function Hero({ recapItems, settings, registrationOpen, capacity }: HeroP
                 <div className="relative overflow-hidden rounded-2xl shadow-neon">
                   <Image
                     src="/assets/hero/access-granted-poster.jpg"
-                    alt="Global Village '26 — Access Granted? event poster featuring the Street Pass lanyard and graffiti artwork"
+                    alt="Global Village '26 — Access Granted? event poster featuring the Global Village '26 Pass lanyard and graffiti artwork"
                     width={640}
                     height={800}
                     priority
@@ -254,7 +254,7 @@ export function Hero({ recapItems, settings, registrationOpen, capacity }: HeroP
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           >
             <Link href="/register" className="btn-primary shadow-neon">
-              <Crown size={15} aria-hidden="true" /> Get Your Street Pass
+              <Crown size={15} aria-hidden="true" /> Get Your Global Village '26 Pass
             </Link>
           </motion.div>
         )}

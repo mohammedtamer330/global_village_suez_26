@@ -96,7 +96,7 @@ export async function sendApprovalEmail(reg: Registration) {
         <div style="font-size:11px;color:${brand.green};font-weight:900;text-transform:uppercase;letter-spacing:3px;margin-bottom:6px;">Access Granted</div>
         <div style="font-size:42px;font-weight:900;font-family:Impact,sans-serif;color:${brand.green};text-shadow:0 0 20px ${brand.green}60;">YOU'RE IN!</div>
       </div>
-      <p style="color:${brand.paper}80;line-height:1.6;margin:0 0 24px;">Congratulations ${reg.fullName}! Your registration has been approved. Your Street Pass is ready — see you on 11 August 2026 in Suez!</p>
+      <p style="color:${brand.paper}80;line-height:1.6;margin:0 0 24px;">Congratulations ${reg.fullName}! Your registration has been approved. Your Global Village '26 pass is ready — see you on 11 August 2026 in Suez!</p>
       <div style="background:${brand.paper}08;border:1px solid ${brand.green}30;border-radius:12px;padding:20px;margin:24px 0;">
         <table width="100%" cellpadding="0" cellspacing="0">
           ${infoRow("Reference ID", reg.referenceId, brand.green)}

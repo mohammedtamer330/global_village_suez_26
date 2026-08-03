@@ -68,7 +68,7 @@ export function Nav() {
             })}
           </div>
 
-          <Link href="/register" className="btn-primary hidden text-sm md:inline-flex" aria-label="Get your Street Pass">
+          <Link href="/register" className="btn-primary hidden text-sm md:inline-flex" aria-label="Get your Global Village '26 Pass">
             Get Pass
           </Link>
 
@@ -114,7 +114,7 @@ export function Nav() {
             </div>
             <div className="mt-auto pt-8">
               <Link href="/register" className="btn-primary w-full text-base" onClick={() => setMobileOpen(false)}>
-                Get Your Street Pass
+                Get Your Global Village '26 Pass
               </Link>
             </div>
           </motion.div>

@@ -44,7 +44,7 @@ function FileUpload({ name, label, required = false }: { name: string; label: st
 }
 
 // ── Promo code checker ────────────────────────────────────────────────────────
-function PromoInput({ ticketPrice }: { ticketPrice: number }) {
+function PromoInput({ ticketPrice, onApplied }: { ticketPrice: number; onApplied: (result: { discount: number; finalPrice: number } | null) => void }) {
   const [code, setCode] = useState("");
   const [result, setResult] = useState<{ discount: number; finalPrice: number } | null>(null);
   const [checking, setChecking] = useState(false);
@@ -52,12 +52,12 @@ function PromoInput({ ticketPrice }: { ticketPrice: number }) {
 
   async function check() {
     if (!code.trim()) return;
-    setChecking(true); setError(""); setResult(null);
+    setChecking(true); setError(""); setResult(null); onApplied(null);
     try {
       const res = await fetch(`/api/promo?code=${encodeURIComponent(code)}`);
       const data = await res.json() as { discount: number; finalPrice: number };
       if (data.discount === 0) setError("Invalid or expired promo code.");
-      else setResult(data);
+      else { setResult(data); onApplied(data); }
     } catch { setError("Could not verify code. Try again."); }
     setChecking(false);
   }
@@ -68,7 +68,7 @@ function PromoInput({ ticketPrice }: { ticketPrice: number }) {
         <div className="relative flex-1">
           <Tag size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-paper/40" />
           <input className="field pl-9 uppercase" name="promoCode" placeholder="Promo Code (optional)"
-            value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setResult(null); setError(""); }}
+            value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setResult(null); setError(""); onApplied(null); }}
           />
         </div>
         <button type="button" onClick={check} disabled={checking || !code.trim()} className="btn-secondary shrink-0 text-sm">
@@ -87,20 +87,20 @@ function PromoInput({ ticketPrice }: { ticketPrice: number }) {
 }
 
 // ── Ticket Preview ────────────────────────────────────────────────────────────
-function TicketPreview({ data, ticketPrice, onBack, onSubmit, pending }: {
+function TicketPreview({ data, ticketPrice, finalPrice, onBack, onSubmit, pending }: {
   data: Record<string, string | string[]>;
   ticketPrice: number;
+  finalPrice: number;
   onBack: () => void;
   onSubmit: () => void;
   pending: boolean;
 }) {
-  const discount = 0; // shown from promo in form
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-limeflash/30 bg-limeflash/5 p-6">
         <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/10">
           <div>
-            <p className="text-xs font-black uppercase text-limeflash mb-1">Street Pass</p>
+            <p className="text-xs font-black uppercase text-limeflash mb-1">Global Village '26 Pass</p>
             <p className="font-display text-4xl">Review Your Order</p>
           </div>
           <Crown size={36} className="text-limeflash" />
@@ -122,7 +122,12 @@ function TicketPreview({ data, ticketPrice, onBack, onSubmit, pending }: {
         </div>
         <div className="mt-5 flex items-end justify-between rounded-xl bg-limeflash/10 border border-limeflash/20 p-4">
           <span className="text-sm font-black uppercase text-limeflash">Total Due</span>
-          <span className="font-display text-5xl text-limeflash">{ticketPrice} <span className="text-xl text-limeflash/70">EGP</span></span>
+          <span className="flex items-baseline gap-2">
+            {finalPrice < ticketPrice && (
+              <span className="text-lg line-through text-limeflash/40">{ticketPrice} EGP</span>
+            )}
+            <span className="font-display text-5xl text-limeflash">{finalPrice} <span className="text-xl text-limeflash/70">EGP</span></span>
+          </span>
         </div>
         {data.paymentMethod === "Cash" && (
           <div className="mt-4 flex items-start gap-3 rounded-xl border border-hotpink/30 bg-hotpink/10 p-4">
@@ -151,6 +156,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
 }) {
   const [step, setStep] = useState(0); // 0=step1 1=step2 2=preview
   const [paymentMethod, setPaymentMethod] = useState("Instapay");
+  const [promoResult, setPromoResult] = useState<{ discount: number; finalPrice: number } | null>(null);
   const [formSnapshot, setFormSnapshot] = useState<Record<string, string | string[]>>({});
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [state, action, pending] = useActionState(submitRegistration, initialState);
@@ -295,7 +301,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
 
               <div className="mb-6">
                 <h3 className="font-black uppercase text-paper/60 text-sm mb-3">Promo Code</h3>
-                <PromoInput ticketPrice={ticketPrice} />
+                <PromoInput ticketPrice={ticketPrice} onApplied={setPromoResult} />
               </div>
 
               <div className="flex justify-end">
@@ -390,6 +396,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
               <TicketPreview
                 data={formSnapshot}
                 ticketPrice={ticketPrice}
+                finalPrice={promoResult?.finalPrice ?? ticketPrice}
                 onBack={() => setStep(1)}
                 onSubmit={() => {
                   const form = document.querySelector("form[data-reg]") as HTMLFormElement | null;

@@ -24,7 +24,7 @@ export function TicketCards({ price, registrationOpen, capacityFull }: {
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-limeflash/15 px-3 py-1 text-xs font-black uppercase text-limeflash">
                 <Crown size={12} aria-hidden="true" /> Full Access
               </div>
-              <h3 className="font-display text-6xl uppercase sm:text-7xl">Street Pass</h3>
+              <h3 className="font-display text-6xl uppercase sm:text-7xl">Global Village '26 Pass</h3>
             </div>
             <Ticket className="mt-1 shrink-0 text-limeflash" size={48} aria-hidden="true" />
           </div>

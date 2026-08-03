@@ -11,7 +11,7 @@ export default async function RegisterPage() {
   return (
     <main className="px-4 pb-24 pt-28">
       <div className="mx-auto mb-8 max-w-4xl">
-        <p className="mb-2 font-black uppercase tracking-widest text-hotpink text-sm">Street Pass Intake</p>
+        <p className="mb-2 font-black uppercase tracking-widest text-hotpink text-sm">Global Village '26 Pass Intake</p>
         <h1 className="graffiti-title text-5xl leading-none sm:text-7xl">Register</h1>
       </div>
       <RegistrationWizard
