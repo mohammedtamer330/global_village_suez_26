@@ -167,7 +167,7 @@ export function Hero({ recapItems, settings, registrationOpen, capacity }: HeroP
                 </div>
               ) : registrationOpen ? (
                 <Link href="/register" className="btn-primary group relative overflow-hidden"
-                  aria-label="Register for Global Village Street 26"
+                  aria-label="Register for Global Village 26"
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     Get Your Street Pass
@@ -229,7 +229,7 @@ export function Hero({ recapItems, settings, registrationOpen, capacity }: HeroP
                 <div className="relative overflow-hidden rounded-2xl shadow-neon">
                   <Image
                     src="/assets/hero/access-granted-poster.jpg"
-                    alt="Global Village Street'26 — Access Granted? event poster featuring the Street Pass lanyard and graffiti artwork"
+                    alt="Global Village '26 — Access Granted? event poster featuring the Street Pass lanyard and graffiti artwork"
                     width={640}
                     height={800}
                     priority

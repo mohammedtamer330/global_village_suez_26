@@ -44,9 +44,9 @@ export function Nav() {
         role="banner"
       >
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5" aria-label="Main navigation">
-          <Link href="/" className="flex items-center gap-2 font-display text-xl text-limeflash" aria-label="Global Village Street 26 home">
+          <Link href="/" className="flex items-center gap-2 font-display text-xl text-limeflash" aria-label="Global Village 26 home">
             <Ticket size={20} aria-hidden="true" />
-            <span>STREET'26</span>
+            <span>GLOBAL VILLAGE '26</span>
           </Link>
 
           {/* Desktop */}

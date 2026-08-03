@@ -30,7 +30,7 @@ export function TicketCards({ price, registrationOpen, capacityFull }: {
           </div>
 
           <p className="text-base text-paper/62">
-            Your all-access pass to every country booth, cultural show, street performance, and interactive experience at Global Village Street'26.
+            Your all-access pass to every country booth, cultural show, street performance, and interactive experience at Global Village '26.
           </p>
 
           <div className="mt-6 flex items-end gap-3">

@@ -282,6 +282,12 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
 
               {(paymentMethod === "Instapay" || paymentMethod === "Vodafone Cash") && (
                 <div className="mb-6">
+                  <div className="mb-4 flex items-start gap-3 rounded-xl border border-limeflash/30 bg-limeflash/10 p-4">
+                    <CreditCard size={20} className="mt-0.5 shrink-0 text-limeflash" />
+                    <p className="text-sm text-paper/80">
+                      Send your payment to <span className="font-black text-limeflash">01023052408</span> ({paymentMethod}), then upload a screenshot of the transaction below.
+                    </p>
+                  </div>
                   <h3 className="font-black uppercase text-paper/60 text-sm mb-3">Payment Screenshot</h3>
                   <FileUpload name="paymentScreenshot" label="Payment Screenshot" required />
                 </div>

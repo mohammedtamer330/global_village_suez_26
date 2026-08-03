@@ -15,7 +15,7 @@ export default function NotFound() {
           Looks like you're lost between countries.
         </p>
         <p className="mb-10 text-base text-paper/45">This page doesn't exist in our village.</p>
-        <Link href="/" className="btn-primary text-base">Return To Street'26</Link>
+        <Link href="/" className="btn-primary text-base">Return To Global Village '26</Link>
       </div>
     </main>
   );

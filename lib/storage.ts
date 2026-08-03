@@ -55,14 +55,14 @@ async function writeValue(key: string, data: unknown) {
 
 // ─── Event Settings ───────────────────────────────────────────────────────────
 const defaultSettings: EventSettings = {
-  eventName: "Global Village Street'26",
+  eventName: "Global Village '26",
   eventDate: "2026-08-11",
   eventTime: "10:00",
   eventLocation: "Suez, Egypt",
   ticketPrice: 140,
   registrationOpen: true,
   maxRegistrations: 300,
-  hero: { eventName: "Global Village Street'26", tagline: "One World. One Crew. One Vibe.", date: "11 August 2026", location: "Suez, Egypt" },
+  hero: { eventName: "Global Village '26", tagline: "One World. One Crew. One Vibe.", date: "11 August 2026", location: "Suez, Egypt" },
   footer: {
     socials: {},
     contact: { address: "Suez, Egypt" },

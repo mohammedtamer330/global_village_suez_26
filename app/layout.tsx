@@ -13,13 +13,13 @@ const graffitiFont = Sedgwick_Ave_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Global Village Street'26",
-    template: "%s | Global Village Street'26",
+    default: "Global Village '26",
+    template: "%s | Global Village '26",
   },
-  description: "One World. One Crew. One Vibe. Register for Global Village Street'26 — 11 August 2026, Suez, Egypt.",
+  description: "One World. One Crew. One Vibe. Register for Global Village '26 — 11 August 2026, Suez, Egypt.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
-    title: "Global Village Street'26",
+    title: "Global Village '26",
     description: "One World. One Crew. One Vibe.",
     type: "website",
   },

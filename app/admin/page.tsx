@@ -105,7 +105,7 @@ export default async function AdminPage({
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="mb-1 font-black uppercase text-hotpink text-sm">Admin Dashboard</p>
-            <h1 className="graffiti-title text-5xl sm:text-7xl">Street'26 Admin</h1>
+            <h1 className="graffiti-title text-5xl sm:text-7xl">Global Village '26 Admin</h1>
           </div>
           <form action={adminLogout}><button className="btn-secondary">Logout</button></form>
         </div>

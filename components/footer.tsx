@@ -34,10 +34,10 @@ export function Footer({ settings }: { settings: FooterSettings }) {
           {/* Brand */}
           <div>
             <Link href="/" className="mb-4 inline-flex items-center gap-2 font-display text-xl text-limeflash" aria-label="Home">
-              <Ticket size={20} aria-hidden="true" /> STREET'26
+              <Ticket size={20} aria-hidden="true" /> GLOBAL VILLAGE '26
             </Link>
             <p className="mt-2 text-sm leading-7 text-paper/50">
-              Global Village Street'26 — One World. One Crew. One Vibe.
+              Global Village '26 — One World. One Crew. One Vibe.
             </p>
             <p className="mt-3 text-sm font-bold text-hotpink">11 August 2026 · Suez, Egypt</p>
           </div>
@@ -109,7 +109,7 @@ export function Footer({ settings }: { settings: FooterSettings }) {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-center sm:flex-row">
-          <p className="text-xs text-paper/30">© 2026 Global Village Street'26. All rights reserved.</p>
+          <p className="text-xs text-paper/30">© 2026 Global Village '26. All rights reserved.</p>
           <p className="text-xs font-bold text-paper/30">
             Website Developed &amp; Designed by{" "}
             <span className="text-limeflash">Mohammed Tamer</span>

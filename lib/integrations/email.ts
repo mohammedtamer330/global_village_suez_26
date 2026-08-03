@@ -27,7 +27,7 @@ function baseTemplate(content: string, title: string) {
       <!-- Header -->
       <div style="text-align:center;padding:32px 0 24px;border-bottom:2px solid ${brand.green}20;">
         <div style="font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:4px;color:${brand.green};margin-bottom:8px;">GLOBAL VILLAGE</div>
-        <div style="font-size:42px;font-weight:900;text-transform:uppercase;font-family:Impact,sans-serif;letter-spacing:-1px;color:${brand.paper};text-shadow:0 0 20px ${brand.green}50;">STREET'26</div>
+        <div style="font-size:42px;font-weight:900;text-transform:uppercase;font-family:Impact,sans-serif;letter-spacing:-1px;color:${brand.paper};text-shadow:0 0 20px ${brand.green}50;">GLOBAL VILLAGE '26</div>
         <div style="font-size:11px;color:${brand.paper}80;margin-top:6px;text-transform:uppercase;letter-spacing:2px;">11 August 2026 · Suez, Egypt</div>
       </div>
       <!-- Content -->
@@ -35,7 +35,7 @@ function baseTemplate(content: string, title: string) {
       <!-- Footer -->
       <div style="text-align:center;padding:24px 0;border-top:1px solid ${brand.paper}20;margin-top:32px;">
         <div style="font-size:11px;color:${brand.paper}50;text-transform:uppercase;letter-spacing:2px;">One World. One Crew. One Vibe.</div>
-        <div style="font-size:10px;color:${brand.paper}30;margin-top:8px;">Global Village Street'26 · Suez, Egypt</div>
+        <div style="font-size:10px;color:${brand.paper}30;margin-top:8px;">Global Village '26 · Suez, Egypt</div>
       </div>
     </td></tr>
   </table>
@@ -58,7 +58,7 @@ export async function sendPendingEmail(reg: Registration) {
     <div style="padding:32px 0;">
       <div style="font-size:11px;color:${brand.pink};font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">Registration Received</div>
       <div style="font-size:36px;font-weight:900;text-transform:uppercase;font-family:Impact,sans-serif;color:${brand.paper};">Under Review</div>
-      <p style="color:${brand.paper}80;line-height:1.6;margin:16px 0 24px;">Hey ${reg.fullName}! Your registration for Global Village Street'26 has been received and is now under review. We'll notify you once it's approved.</p>
+      <p style="color:${brand.paper}80;line-height:1.6;margin:16px 0 24px;">Hey ${reg.fullName}! Your registration for Global Village '26 has been received and is now under review. We'll notify you once it's approved.</p>
       <div style="background:${brand.paper}08;border:1px solid ${brand.green}30;border-radius:12px;padding:20px;margin:24px 0;">
         <table width="100%" cellpadding="0" cellspacing="0">
           ${infoRow("Reference ID", reg.referenceId, brand.green)}
@@ -73,7 +73,7 @@ export async function sendPendingEmail(reg: Registration) {
         <span style="font-size:12px;color:${brand.paper}70;">Use it to track your registration status at our website.</span>
       </div>
     </div>
-  `, "Registration Received — Street'26");
+  `, "Registration Received — Global Village '26");
 
   try {
     const { Resend } = await import("resend");
@@ -81,7 +81,7 @@ export async function sendPendingEmail(reg: Registration) {
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to: reg.email,
-      subject: `Registration Received — Ref: ${reg.referenceId} | Global Village Street'26`,
+      subject: `Registration Received — Ref: ${reg.referenceId} | Global Village '26`,
       html,
     });
   } catch (e) { console.error("[Email] send failed:", e); }
@@ -113,7 +113,7 @@ export async function sendApprovalEmail(reg: Registration) {
         <span style="font-size:12px;color:${brand.paper}70;">Your QR code will be scanned at the entrance.</span>
       </div>
     </div>
-  `, "Access Granted — Street'26");
+  `, "Access Granted — Global Village '26");
 
   try {
     const { Resend } = await import("resend");
@@ -121,7 +121,7 @@ export async function sendApprovalEmail(reg: Registration) {
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to: reg.email,
-      subject: `✅ ACCESS GRANTED — Ref: ${reg.referenceId} | Global Village Street'26`,
+      subject: `✅ ACCESS GRANTED — Ref: ${reg.referenceId} | Global Village '26`,
       html,
     });
   } catch (e) { console.error("[Email] send failed:", e); }
@@ -133,7 +133,7 @@ export async function sendRejectionEmail(reg: Registration) {
     <div style="padding:32px 0;">
       <div style="font-size:11px;color:${brand.pink};font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">Registration Update</div>
       <div style="font-size:36px;font-weight:900;font-family:Impact,sans-serif;color:${brand.paper};">We're Sorry</div>
-      <p style="color:${brand.paper}80;line-height:1.6;margin:16px 0 24px;">Hi ${reg.fullName}, unfortunately your registration for Global Village Street'26 could not be approved at this time.</p>
+      <p style="color:${brand.paper}80;line-height:1.6;margin:16px 0 24px;">Hi ${reg.fullName}, unfortunately your registration for Global Village '26 could not be approved at this time.</p>
       ${reg.rejectionReason ? `<div style="background:${brand.paper}08;border:1px solid ${brand.pink}30;border-radius:12px;padding:16px 20px;margin:20px 0;"><span style="font-size:11px;color:${brand.pink};text-transform:uppercase;font-weight:700;">Reason</span><br><p style="color:${brand.paper}80;margin:8px 0 0;">${reg.rejectionReason}</p></div>` : ""}
       <div style="background:${brand.paper}08;border:1px solid ${brand.paper}20;border-radius:12px;padding:20px;margin:24px 0;">
         <table width="100%" cellpadding="0" cellspacing="0">
@@ -143,7 +143,7 @@ export async function sendRejectionEmail(reg: Registration) {
       </div>
       <p style="color:${brand.paper}60;font-size:13px;line-height:1.6;">If you believe this is an error or would like more information, please contact our team and reference your ID above.</p>
     </div>
-  `, "Registration Update — Street'26");
+  `, "Registration Update — Global Village '26");
 
   try {
     const { Resend } = await import("resend");
@@ -151,7 +151,7 @@ export async function sendRejectionEmail(reg: Registration) {
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to: reg.email,
-      subject: `Registration Update — Ref: ${reg.referenceId} | Global Village Street'26`,
+      subject: `Registration Update — Ref: ${reg.referenceId} | Global Village '26`,
       html,
     });
   } catch (e) { console.error("[Email] send failed:", e); }
