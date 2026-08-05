@@ -1,7 +1,9 @@
 import Image from "next/image";
 import { CountryPicker } from "@/components/admin/country-picker";
+import { ConfirmSubmitButton } from "@/components/admin/confirm-submit-button";
 import {
   adminLogin, adminLogout, approveRegistration, isAdminAuthenticated, rejectRegistration,
+  deleteRegistration, restoreRegistration, permanentlyDeleteRegistration,
   upsertCountry, removeCountry, upsertSponsor, removeSponsor,
   upsertRecapItem, removeRecapItem, upsertPromoCode, removePromoCode, togglePromoStatus,
   upsertEventSettings, upsertFooterSettings, addQuickLink, removeQuickLink,
@@ -44,10 +46,13 @@ export default async function AdminPage({
   const q = params.q?.toLowerCase() || "";
   const statusFilter = params.status || "";
 
-  const [registrations, countries, sponsors, recapItems, promoCodes, settings] = await Promise.all([
+  const [allRegistrations, countries, sponsors, recapItems, promoCodes, settings] = await Promise.all([
     listRegistrations(), listCountries(), listSponsors(),
     listRecapItems(), listPromoCodes(), getEventSettings(),
   ]);
+
+  const registrations = allRegistrations.filter((r) => !r.deletedAt);
+  const deletedRegs = allRegistrations.filter((r) => r.deletedAt);
 
   // Analytics
   const total = registrations.length;
@@ -83,6 +88,7 @@ export default async function AdminPage({
   const tabs = [
     { id: "dashboard", label: "Dashboard" },
     { id: "registrations", label: "Registrations", count: total },
+    { id: "bin", label: "Bin", count: deletedRegs.length },
     { id: "countries", label: "Countries", count: countries.length },
     { id: "promo-codes", label: "Promo Codes", count: promoCodes.length },
     { id: "sponsors", label: "Sponsors", count: sponsors.length },
@@ -273,11 +279,71 @@ export default async function AdminPage({
                         <input className="field text-sm" name="rejectionReason" placeholder="Rejection reason (optional)" />
                         <button className="btn-secondary w-full text-sm border-hotpink/40 text-hotpink hover:bg-hotpink/10" disabled={item.status === "Rejected"}>✕ Reject</button>
                       </form>
+                      <form action={deleteRegistration}>
+                        <input type="hidden" name="referenceId" value={item.referenceId} />
+                        <ConfirmSubmitButton
+                          confirmMessage={`Move ${item.fullName} (${item.referenceId}) to the Bin?`}
+                          className="w-full rounded-lg border border-hotpink/30 py-1.5 text-xs font-black uppercase text-hotpink hover:bg-hotpink/10 transition"
+                        >
+                          🗑 Delete
+                        </ConfirmSubmitButton>
+                      </form>
                     </div>
                   </div>
                 </article>
               ))}
               {filteredRegs.length === 0 && <p className="paint-card rounded-xl p-8 text-paper/50 text-center">No registrations found.</p>}
+            </div>
+          </div>
+        )}
+
+        {/* ─── BIN ─── */}
+        {tab === "bin" && (
+          <div>
+            <p className="mb-4 text-sm text-paper/50">Deleted registrations are kept here until you restore or permanently delete them.</p>
+            <div className="space-y-4">
+              {deletedRegs.map((item) => (
+                <article key={item.referenceId} className="paint-card rounded-xl p-5 opacity-80">
+                  <div className="grid gap-5 lg:grid-cols-[1fr_220px]">
+                    <div>
+                      <div className="mb-3 flex flex-wrap items-center gap-2">
+                        <h2 className="font-display text-3xl text-paper/60 uppercase">{item.fullName}</h2>
+                        <span className="rounded-lg bg-white/10 px-2 py-0.5 text-xs font-black">{item.referenceId}</span>
+                        <span className="rounded-lg bg-hotpink/15 px-2 py-0.5 text-xs font-black text-hotpink">Deleted</span>
+                      </div>
+                      <div className="grid gap-1.5 text-sm text-paper/50 sm:grid-cols-3 mb-3">
+                        <span>📧 {item.email}</span>
+                        <span>📱 {item.phone}</span>
+                        <span>🏙 {item.city}</span>
+                        <span>💳 {item.paymentMethod}</span>
+                        <span>💰 {item.finalPrice} EGP</span>
+                        {item.deletedAt && <span>🗑 Deleted {new Date(item.deletedAt).toLocaleString("en-US")}</span>}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <form action={restoreRegistration}>
+                        <input type="hidden" name="referenceId" value={item.referenceId} />
+                        <ConfirmSubmitButton
+                          confirmMessage={`Restore ${item.fullName} (${item.referenceId}) back to registrations?`}
+                          className="btn-primary w-full text-sm"
+                        >
+                          ↺ Restore
+                        </ConfirmSubmitButton>
+                      </form>
+                      <form action={permanentlyDeleteRegistration}>
+                        <input type="hidden" name="referenceId" value={item.referenceId} />
+                        <ConfirmSubmitButton
+                          confirmMessage={`Permanently delete ${item.fullName} (${item.referenceId})? This cannot be undone.`}
+                          className="w-full rounded-lg border border-hotpink/40 bg-hotpink/10 py-1.5 text-sm font-black uppercase text-hotpink hover:bg-hotpink/20 transition"
+                        >
+                          ⚠ Delete Forever
+                        </ConfirmSubmitButton>
+                      </form>
+                    </div>
+                  </div>
+                </article>
+              ))}
+              {deletedRegs.length === 0 && <p className="paint-card rounded-xl p-8 text-paper/50 text-center">Bin is empty.</p>}
             </div>
           </div>
         )}

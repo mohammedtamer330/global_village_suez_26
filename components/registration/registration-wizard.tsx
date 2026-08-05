@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useEffect, useActionState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, UserRound, ImageUp, CreditCard, CheckCircle2, Tag, Users, Crown, Sparkles } from "lucide-react";
 import { submitRegistration, type ActionState } from "@/lib/actions";
@@ -18,28 +19,37 @@ const HEARD_FROM = [
   "Friend / Word of mouth", "University", "Poster / Flyer", "Other",
 ];
 
+// ── Field error message ───────────────────────────────────────────────────────
+function FieldError({ error }: { error?: string }) {
+  if (!error) return null;
+  return <p className="mt-1.5 text-xs font-bold text-hotpink">{error}</p>;
+}
+
 // ── File upload preview ───────────────────────────────────────────────────────
-function FileUpload({ name, label, required = false }: { name: string; label: string; required?: boolean }) {
+function FileUpload({ name, label, required = false, error }: { name: string; label: string; required?: boolean; error?: string }) {
   const [preview, setPreview] = useState("");
   return (
-    <label className="block cursor-pointer rounded-xl border border-dashed border-white/20 bg-white/5 p-4 transition hover:border-limeflash/50 hover:bg-limeflash/5">
-      <span className="mb-3 flex items-center gap-2 text-sm font-black uppercase text-paper/60">
-        <ImageUp size={15} /> {label} {required && <span className="text-hotpink">*</span>}
-      </span>
-      <input type="file" name={name} accept="image/*" required={required} className="sr-only"
-        onChange={(e) => {
-          const f = e.currentTarget.files?.[0];
-          if (!f) return setPreview("");
-          const r = new FileReader();
-          r.onload = () => setPreview(String(r.result));
-          r.readAsDataURL(f);
-        }}
-      />
-      {preview
-        ? <img src={preview} alt="" className="mt-2 aspect-video w-full rounded-lg object-cover" />
-        : <div className="flex aspect-video w-full items-center justify-center rounded-lg bg-white/5 text-xs text-paper/30 uppercase font-bold">Click to upload</div>
-      }
-    </label>
+    <div>
+      <label className={`block cursor-pointer rounded-xl border border-dashed p-4 transition ${error ? "border-hotpink/60 bg-hotpink/5" : "border-white/20 bg-white/5 hover:border-limeflash/50 hover:bg-limeflash/5"}`}>
+        <span className="mb-3 flex items-center gap-2 text-sm font-black uppercase text-paper/60">
+          <ImageUp size={15} /> {label} {required && <span className="text-hotpink">*</span>}
+        </span>
+        <input type="file" name={name} accept="image/*" required={required} className="sr-only"
+          onChange={(e) => {
+            const f = e.currentTarget.files?.[0];
+            if (!f) return setPreview("");
+            const r = new FileReader();
+            r.onload = () => setPreview(String(r.result));
+            r.readAsDataURL(f);
+          }}
+        />
+        {preview
+          ? <img src={preview} alt="" className="mt-2 aspect-video w-full rounded-lg object-cover" />
+          : <div className="flex aspect-video w-full items-center justify-center rounded-lg bg-white/5 text-xs text-paper/30 uppercase font-bold">Click to upload</div>
+        }
+      </label>
+      <FieldError error={error} />
+    </div>
   );
 }
 
@@ -160,12 +170,31 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
   const [formSnapshot, setFormSnapshot] = useState<Record<string, string | string[]>>({});
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [state, action, pending] = useActionState(submitRegistration, initialState);
-  const formRef = useState(() => (typeof document !== "undefined" ? document.createElement("form") : null))[0];
+  const router = useRouter();
 
   const STEPS = [
     { label: "Registration", icon: UserRound },
     { label: "Experience", icon: Sparkles },
   ];
+
+  const STEP1_FIELDS = ["fullName", "email", "phone", "age", "city", "paymentMethod", "nationalIdFront", "nationalIdBack", "paymentScreenshot"];
+
+  // On validation failure, jump back to the step containing the offending field so the user sees it.
+  useEffect(() => {
+    if (!state.ok && state.fieldErrors) {
+      const hasStep1Error = Object.keys(state.fieldErrors).some((k) => STEP1_FIELDS.includes(k));
+      setStep(hasStep1Error ? 0 : 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  // On success, confirm briefly then send the user to their ticket/status page.
+  useEffect(() => {
+    if (state.ok && state.referenceId) {
+      const t = setTimeout(() => router.push(`/track?ref=${state.referenceId}`), 2200);
+      return () => clearTimeout(t);
+    }
+  }, [state.ok, state.referenceId, router]);
 
   function toggleInterest(v: string) {
     setSelectedInterests((prev) => prev.includes(v) ? prev.filter((i) => i !== v) : [...prev, v]);
@@ -212,10 +241,10 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
           </div>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <a href={`/track?ref=${state.referenceId}`} className="btn-primary flex-1">Track Registration</a>
+          <a href={`/track?ref=${state.referenceId}`} className="btn-primary flex-1">Go To My Pass Now</a>
           <a href="/" className="btn-secondary flex-1">Back To Home</a>
         </div>
-        <p className="mt-4 text-xs text-paper/40">Screenshot your reference ID for future tracking.</p>
+        <p className="mt-4 text-xs text-paper/40">Screenshot your reference ID for future tracking. Redirecting you to your pass status…</p>
       </motion.div>
     );
   }
@@ -253,20 +282,35 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
           <div className={step === 0 ? "" : "hidden"}>
               <h2 className="graffiti-title text-4xl mb-6">Personal Info</h2>
               <div className="grid gap-4 md:grid-cols-2 mb-6">
-                <input className="field md:col-span-2" name="fullName" placeholder="Full Name *" required />
-                <input className="field" name="email" type="email" placeholder="Email Address *" required />
-                <input className="field" name="phone" placeholder="Phone Number *" required />
-                <input className="field" name="age" type="number" min="12" max="80" placeholder="Age *" required />
-                <select className="field" name="city" required defaultValue="">
-                  <option value="" disabled>City / Governorate *</option>
-                  {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
-                </select>
+                <div className="md:col-span-2">
+                  <input className={`field w-full ${state.fieldErrors?.fullName ? "border-hotpink/60" : ""}`} name="fullName" placeholder="Full Name *" required />
+                  <FieldError error={state.fieldErrors?.fullName} />
+                </div>
+                <div>
+                  <input className={`field w-full ${state.fieldErrors?.email ? "border-hotpink/60" : ""}`} name="email" type="email" placeholder="Email Address *" required />
+                  <FieldError error={state.fieldErrors?.email} />
+                </div>
+                <div>
+                  <input className={`field w-full ${state.fieldErrors?.phone ? "border-hotpink/60" : ""}`} name="phone" placeholder="Phone Number *" required />
+                  <FieldError error={state.fieldErrors?.phone} />
+                </div>
+                <div>
+                  <input className={`field w-full ${state.fieldErrors?.age ? "border-hotpink/60" : ""}`} name="age" type="number" min="12" max="80" placeholder="Age *" required />
+                  <FieldError error={state.fieldErrors?.age} />
+                </div>
+                <div>
+                  <select className={`field w-full ${state.fieldErrors?.city ? "border-hotpink/60" : ""}`} name="city" required defaultValue="">
+                    <option value="" disabled>City / Governorate *</option>
+                    {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                  <FieldError error={state.fieldErrors?.city} />
+                </div>
               </div>
 
               <h3 className="font-black uppercase text-paper/60 text-sm mb-4">National ID</h3>
               <div className="grid gap-4 md:grid-cols-2 mb-6">
-                <FileUpload name="nationalIdFront" label="ID Front" required />
-                <FileUpload name="nationalIdBack" label="ID Back" required />
+                <FileUpload name="nationalIdFront" label="ID Front" required error={state.fieldErrors?.nationalIdFront} />
+                <FileUpload name="nationalIdBack" label="ID Back" required error={state.fieldErrors?.nationalIdBack} />
               </div>
 
               <h3 className="font-black uppercase text-paper/60 text-sm mb-4">Payment Method</h3>
@@ -278,6 +322,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
                   </label>
                 ))}
               </div>
+              <FieldError error={state.fieldErrors?.paymentMethod} />
 
               {paymentMethod === "Cash" && (
                 <div className="mb-6 flex items-start gap-3 rounded-xl border border-hotpink/30 bg-hotpink/10 p-4">
@@ -295,7 +340,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
                     </p>
                   </div>
                   <h3 className="font-black uppercase text-paper/60 text-sm mb-3">Payment Screenshot</h3>
-                  <FileUpload name="paymentScreenshot" label="Payment Screenshot" required />
+                  <FileUpload name="paymentScreenshot" label="Payment Screenshot" required error={state.fieldErrors?.paymentScreenshot} />
                 </div>
               )}
 

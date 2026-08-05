@@ -31,6 +31,7 @@ export type Registration = {
   qrDataUrl?: string;
   rejectionReason?: string;
   checkedInAt?: string;
+  deletedAt?: string;
 };
 
 export type Country = {

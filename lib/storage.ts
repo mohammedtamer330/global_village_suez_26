@@ -110,7 +110,11 @@ export async function setRegistrationStatus(referenceId: string, status: Registr
   return updateRegistration(referenceId, { status, ...extra });
 }
 export async function getRegistrationCount() {
-  return (await listRegistrations()).length;
+  return (await listRegistrations()).filter((r) => !r.deletedAt).length;
+}
+export async function hardDeleteRegistration(referenceId: string) {
+  const regs = await listRegistrations();
+  await writeRegistrations(regs.filter((r) => r.referenceId !== referenceId));
 }
 
 // ─── Countries ────────────────────────────────────────────────────────────────

@@ -14,7 +14,7 @@ import { generateQrDataUrl, generateTicketPdf } from "@/lib/integrations/ticket"
 import { normalizePromoCode } from "@/lib/pricing";
 import {
   listRegistrations, nextReferenceId, saveRegistration,
-  setRegistrationStatus, updateRegistration, getRegistrationCount,
+  setRegistrationStatus, updateRegistration, getRegistrationCount, hardDeleteRegistration,
   getEventSettings, saveEventSettings,
   saveCountry, deleteCountry,
   saveSponsor, deleteSponsor,
@@ -26,18 +26,18 @@ import type {
   PaymentMethod, Registration, Country, Sponsor, RecapItem, PromoCode, EventSettings, QuickLink,
 } from "@/lib/types";
 
-export type ActionState = { ok: boolean; message: string; referenceId?: string; status?: string };
+export type ActionState = { ok: boolean; message: string; referenceId?: string; status?: string; fieldErrors?: Record<string, string> };
 
 // ─── Registration ─────────────────────────────────────────────────────────────
 const paymentMethods = ["Instapay", "Vodafone Cash", "Cash"] as const;
 
 const registrationSchema = z.object({
-  fullName: z.string().min(3),
-  email: z.string().email(),
-  phone: z.string().min(8),
-  age: z.coerce.number().min(12).max(80),
-  city: z.string().refine((c) => governorates.includes(c as (typeof governorates)[number])),
-  paymentMethod: z.enum(paymentMethods),
+  fullName: z.string().min(3, "Please enter your full name."),
+  email: z.string().email("Please enter a valid email address."),
+  phone: z.string().min(8, "Please enter a valid phone number."),
+  age: z.coerce.number().min(12, "You must be at least 12 years old.").max(80, "Please enter a valid age."),
+  city: z.string().refine((c) => governorates.includes(c as (typeof governorates)[number]), "Please select your city/governorate."),
+  paymentMethod: z.enum(paymentMethods, { message: "Please select a payment method." }),
   promoCode: z.string().optional(),
   // Step 2 optional
   university: z.string().optional(),
@@ -66,16 +66,29 @@ export async function submitRegistration(_prev: ActionState, formData: FormData)
     allergyNotes: nullToUndefined(formData.get("allergyNotes")), availableFullDay: nullToUndefined(formData.get("availableFullDay")),
     heardFrom: nullToUndefined(formData.get("heardFrom")),
   });
-  if (!parsed.success) return { ok: false, message: "Please check your registration details." };
+  if (!parsed.success) {
+    const flat = parsed.error.flatten().fieldErrors;
+    const fieldErrors: Record<string, string> = {};
+    for (const [key, messages] of Object.entries(flat)) if (messages?.[0]) fieldErrors[key] = messages[0];
+    return { ok: false, message: "Some info is missing or invalid — please check the highlighted fields.", fieldErrors };
+  }
 
   const paymentMethod = parsed.data.paymentMethod as PaymentMethod;
   const front = formData.get("nationalIdFront") as File | null;
   const back = formData.get("nationalIdBack") as File | null;
   const payment = formData.get("paymentScreenshot") as File | null;
 
-  if (!front?.size || !back?.size) return { ok: false, message: "National ID front and back images are required." };
+  if (!front?.size || !back?.size) {
+    const fieldErrors: Record<string, string> = {};
+    if (!front?.size) fieldErrors.nationalIdFront = "National ID front image is required.";
+    if (!back?.size) fieldErrors.nationalIdBack = "National ID back image is required.";
+    return { ok: false, message: "Some info is missing or invalid — please check the highlighted fields.", fieldErrors };
+  }
   if ((paymentMethod === "Instapay" || paymentMethod === "Vodafone Cash") && !payment?.size)
-    return { ok: false, message: "Payment screenshot is required for digital payments." };
+    return {
+      ok: false, message: "Some info is missing or invalid — please check the highlighted fields.",
+      fieldErrors: { paymentScreenshot: "Payment screenshot is required for digital payments." },
+    };
 
   const referenceId = await nextReferenceId();
   const localFront = await saveUploadedFile(front, referenceId, "National ID Front");
@@ -171,6 +184,26 @@ export async function checkInRegistration(_prev: ActionState, formData: FormData
   await updateSheetStatus(referenceId, "Checked In");
   revalidatePath("/admin");
   return { ok: true, message: "Checked in successfully.", referenceId, status: "Checked In" };
+}
+
+// ─── Registration Bin (soft delete) ───────────────────────────────────────────
+export async function deleteRegistration(formData: FormData) {
+  if (!(await isAdminAuthenticated())) throw new Error("Unauthorized");
+  const referenceId = String(formData.get("referenceId"));
+  await updateRegistration(referenceId, { deletedAt: new Date().toISOString() });
+  revalidatePath("/admin");
+}
+export async function restoreRegistration(formData: FormData) {
+  if (!(await isAdminAuthenticated())) throw new Error("Unauthorized");
+  const referenceId = String(formData.get("referenceId"));
+  await updateRegistration(referenceId, { deletedAt: undefined });
+  revalidatePath("/admin");
+}
+export async function permanentlyDeleteRegistration(formData: FormData) {
+  if (!(await isAdminAuthenticated())) throw new Error("Unauthorized");
+  const referenceId = String(formData.get("referenceId"));
+  await hardDeleteRegistration(referenceId);
+  revalidatePath("/admin");
 }
 
 // ─── Event Settings ───────────────────────────────────────────────────────────
