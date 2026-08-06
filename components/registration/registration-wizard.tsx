@@ -169,8 +169,10 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
   const [promoResult, setPromoResult] = useState<{ discount: number; finalPrice: number } | null>(null);
   const [formSnapshot, setFormSnapshot] = useState<Record<string, string | string[]>>({});
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [state, action, pending] = useActionState(submitRegistration, initialState);
   const router = useRouter();
+  const fieldErrors = { ...clientErrors, ...state.fieldErrors };
 
   const STEPS = [
     { label: "Registration", icon: UserRound },
@@ -209,6 +211,56 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
     const interests = fd.getAll("interests").map(String);
     if (interests.length) snap.interests = interests;
     setFormSnapshot(snap);
+  }
+
+  // Client-side check for step 1's required fields — the wizard's step buttons are
+  // type="button" so they never trigger native <form> constraint validation, and a
+  // required field left empty on a hidden (display:none) step silently blocks the
+  // final submit with no visible feedback. Validate explicitly instead.
+  function getStep1Errors(): Record<string, string> {
+    const form = document.querySelector("form[data-reg]") as HTMLFormElement | null;
+    if (!form) return {};
+    const errors: Record<string, string> = {};
+    const val = (name: string) => ((form.querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value || "").trim();
+    const file = (name: string) => (form.querySelector(`[name="${name}"]`) as HTMLInputElement | null)?.files?.[0];
+
+    if (val("fullName").length < 3) errors.fullName = "Please enter your full name.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"))) errors.email = "Please enter a valid email address.";
+    if (val("phone").length < 8) errors.phone = "Please enter a valid phone number.";
+    const age = Number(val("age"));
+    if (!age || age < 12 || age > 80) errors.age = "Please enter your age (12-80).";
+    if (!val("city")) errors.city = "Please select your city/governorate.";
+    if (!file("nationalIdFront")) errors.nationalIdFront = "National ID front image is required.";
+    if (!file("nationalIdBack")) errors.nationalIdBack = "National ID back image is required.";
+    if ((paymentMethod === "Instapay" || paymentMethod === "Vodafone Cash") && !file("paymentScreenshot")) {
+      errors.paymentScreenshot = "Payment screenshot is required for digital payments.";
+    }
+    return errors;
+  }
+
+  function goToStep1() {
+    const errors = getStep1Errors();
+    if (Object.keys(errors).length > 0) { setClientErrors(errors); return; }
+    setClientErrors({});
+    captureSnapshot();
+    setStep(1);
+  }
+
+  function goToReview() {
+    // Re-check in case the user navigated back and cleared something.
+    const errors = getStep1Errors();
+    if (Object.keys(errors).length > 0) { setClientErrors(errors); setStep(0); return; }
+    setClientErrors({});
+    captureSnapshot();
+    setStep(2);
+  }
+
+  function submitForm() {
+    const errors = getStep1Errors();
+    if (Object.keys(errors).length > 0) { setClientErrors(errors); setStep(0); return; }
+    setClientErrors({});
+    const form = document.querySelector("form[data-reg]") as HTMLFormElement | null;
+    form?.requestSubmit();
   }
 
   if (!registrationOpen || capacityFull) {
@@ -283,34 +335,34 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
               <h2 className="graffiti-title text-4xl mb-6">Personal Info</h2>
               <div className="grid gap-4 md:grid-cols-2 mb-6">
                 <div className="md:col-span-2">
-                  <input className={`field w-full ${state.fieldErrors?.fullName ? "border-hotpink/60" : ""}`} name="fullName" placeholder="Full Name *" required />
-                  <FieldError error={state.fieldErrors?.fullName} />
+                  <input className={`field w-full ${fieldErrors.fullName ? "border-hotpink/60" : ""}`} name="fullName" placeholder="Full Name *" required />
+                  <FieldError error={fieldErrors.fullName} />
                 </div>
                 <div>
-                  <input className={`field w-full ${state.fieldErrors?.email ? "border-hotpink/60" : ""}`} name="email" type="email" placeholder="Email Address *" required />
-                  <FieldError error={state.fieldErrors?.email} />
+                  <input className={`field w-full ${fieldErrors.email ? "border-hotpink/60" : ""}`} name="email" type="email" placeholder="Email Address *" required />
+                  <FieldError error={fieldErrors.email} />
                 </div>
                 <div>
-                  <input className={`field w-full ${state.fieldErrors?.phone ? "border-hotpink/60" : ""}`} name="phone" placeholder="Phone Number *" required />
-                  <FieldError error={state.fieldErrors?.phone} />
+                  <input className={`field w-full ${fieldErrors.phone ? "border-hotpink/60" : ""}`} name="phone" placeholder="Phone Number *" required />
+                  <FieldError error={fieldErrors.phone} />
                 </div>
                 <div>
-                  <input className={`field w-full ${state.fieldErrors?.age ? "border-hotpink/60" : ""}`} name="age" type="number" min="12" max="80" placeholder="Age *" required />
-                  <FieldError error={state.fieldErrors?.age} />
+                  <input className={`field w-full ${fieldErrors.age ? "border-hotpink/60" : ""}`} name="age" type="number" min="12" max="80" placeholder="Age *" required />
+                  <FieldError error={fieldErrors.age} />
                 </div>
                 <div>
-                  <select className={`field w-full ${state.fieldErrors?.city ? "border-hotpink/60" : ""}`} name="city" required defaultValue="">
+                  <select className={`field w-full ${fieldErrors.city ? "border-hotpink/60" : ""}`} name="city" required defaultValue="">
                     <option value="" disabled>City / Governorate *</option>
                     {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
                   </select>
-                  <FieldError error={state.fieldErrors?.city} />
+                  <FieldError error={fieldErrors.city} />
                 </div>
               </div>
 
               <h3 className="font-black uppercase text-paper/60 text-sm mb-4">National ID</h3>
               <div className="grid gap-4 md:grid-cols-2 mb-6">
-                <FileUpload name="nationalIdFront" label="ID Front" required error={state.fieldErrors?.nationalIdFront} />
-                <FileUpload name="nationalIdBack" label="ID Back" required error={state.fieldErrors?.nationalIdBack} />
+                <FileUpload name="nationalIdFront" label="ID Front" required error={fieldErrors.nationalIdFront} />
+                <FileUpload name="nationalIdBack" label="ID Back" required error={fieldErrors.nationalIdBack} />
               </div>
 
               <h3 className="font-black uppercase text-paper/60 text-sm mb-4">Payment Method</h3>
@@ -322,7 +374,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
                   </label>
                 ))}
               </div>
-              <FieldError error={state.fieldErrors?.paymentMethod} />
+              <FieldError error={fieldErrors.paymentMethod} />
 
               {paymentMethod === "Cash" && (
                 <div className="mb-6 flex items-start gap-3 rounded-xl border border-hotpink/30 bg-hotpink/10 p-4">
@@ -340,7 +392,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
                     </p>
                   </div>
                   <h3 className="font-black uppercase text-paper/60 text-sm mb-3">Payment Screenshot</h3>
-                  <FileUpload name="paymentScreenshot" label="Payment Screenshot" required error={state.fieldErrors?.paymentScreenshot} />
+                  <FileUpload name="paymentScreenshot" label="Payment Screenshot" required error={fieldErrors.paymentScreenshot} />
                 </div>
               )}
 
@@ -349,8 +401,13 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
                 <PromoInput ticketPrice={ticketPrice} onApplied={setPromoResult} />
               </div>
 
+              {Object.keys(clientErrors).length > 0 && (
+                <div className="mb-4 rounded-xl border border-hotpink/40 bg-hotpink/10 p-3 text-sm font-bold text-hotpink">
+                  Some required info is missing — please check the highlighted fields above.
+                </div>
+              )}
               <div className="flex justify-end">
-                <button type="button" className="btn-primary" onClick={() => { captureSnapshot(); setStep(1); }}>
+                <button type="button" className="btn-primary" onClick={goToStep1}>
                   Next: Tell Us About You <ArrowRight size={18} />
                 </button>
               </div>
@@ -430,7 +487,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
                 <button type="button" onClick={() => setStep(0)} className="btn-secondary">
                   <ArrowLeft size={18} /> Back
                 </button>
-                <button type="button" className="btn-primary" onClick={() => { captureSnapshot(); setStep(2); }}>
+                <button type="button" className="btn-primary" onClick={goToReview}>
                   Review & Confirm <ArrowRight size={18} />
                 </button>
               </div>
@@ -443,10 +500,7 @@ export function RegistrationWizard({ ticketPrice, registrationOpen, capacityFull
                 ticketPrice={ticketPrice}
                 finalPrice={promoResult?.finalPrice ?? ticketPrice}
                 onBack={() => setStep(1)}
-                onSubmit={() => {
-                  const form = document.querySelector("form[data-reg]") as HTMLFormElement | null;
-                  form?.requestSubmit();
-                }}
+                onSubmit={submitForm}
                 pending={pending}
               />
           </div>
